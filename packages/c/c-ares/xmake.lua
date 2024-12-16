@@ -18,14 +18,19 @@ package("c-ares")
         end
         return nil
     end
-    
-    local version = get_latest_version()
+
+   -- 获取配置的版本号或者最新的版本号
+    local version = config("version")
     if not version then
-       print("Failed to get the latest version of c-ares, using default version 1.20.1")
-       version = "1.20.1"
-    end
+      version = get_latest_version()
+        if not version then
+            print("Failed to get the latest version of c-ares, using default version 1.20.1")
+            version = "1.34.4"
+        end
+     end
     set_version(version)
     set_urls("https://github.com/c-ares/c-ares/releases/download/v$(version)/c-ares-$(version).tar.gz")
+    
 
     on_load(function (package) 
         if package:is_plat("windows", "mingw") and package:config("shared") ~= true then
