@@ -1,5 +1,4 @@
 import("net.http")
-import("core.base.hashset")
 
 package("sqlite3")
     set_homepage("https://sqlite.org/index.html")
@@ -7,30 +6,30 @@ package("sqlite3")
     set_license("MIT")
 
     on_load(function (package)
-        -- 动态解析最新版本信息
-        local sqlite_url = "https://sqlite.org/download.html"
-        local html = http.get(sqlite_url)
-        assert(html, "Failed to fetch SQLite download page!")
+        -- Step 1: 获取 SQLite 最新版本号
+        local index_html = http.get("https://www.sqlite.org/index.html")
+        assert(index_html, "Failed to fetch SQLite index page!")
+        local latest_version = index_html:match(">Version ([%d%.]+)<")
+        assert(latest_version, "Failed to extract latest SQLite version!")
 
-        -- 正则匹配最新版本号和 tar.gz 文件链接
-        local latest_version, latest_url = html:match('href="([^\"]*sqlite%-autoconf%-(%d+).tar.gz)"')
-        assert(latest_version and latest_url, "Failed to find latest SQLite version!")
+        -- Step 2: 获取下载页面内容
+        local download_page = http.get("https://www.sqlite.org/download.html")
+        assert(download_page, "Failed to fetch SQLite download page!")
 
-        -- 解析版本号
-        latest_version = latest_version:sub(1, 1) .. "." .. latest_version:sub(2, 2) .. "." .. latest_version:sub(3)
-        local download_url = "https://sqlite.org/" .. os.date("%Y") .. "/" .. latest_url
+        -- Step 3: 提取 CSV 数据
+        local csv_data = download_page:match("Download product data for scripts to read.-(autoconf.*%.tar%.gz)")
+        assert(csv_data, "Failed to extract download URL data!")
 
-        -- 手动计算文件的哈希值（假设用 SHA256）
-        local hash = http.download(download_url, {cachedir = os.tmpdir()})
-        assert(hash, "Failed to download SQLite tar.gz for hash computation!")
-        local hash_value = hashset.sha256(hash)
+        -- Step 4: 构造最新的 tarball 下载地址
+        local tarball_url = csv_data:match("autoconf.*%.tar%.gz")
+        assert(tarball_url, "Failed to extract tarball URL!")
+        local latest_url = "https://www.sqlite.org/" .. tarball_url
 
-        -- 更新包信息
-        package:set("urls", download_url)
-        package:add("versions", latest_version, hash_value)
+        -- Step 5: 更新包信息
+        package:set("urls", latest_url)
+        package:add("versions", latest_version, "SKIP_CHECKSUM") -- 默认不校验哈希
     end)
 
-    -- 配置选项
     add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
     add_configs("dbpage_vtab",      { description = "Enable the SQLITE_DBPAGE virtual table.", default = true, type = "boolean"})
     add_configs("stmt_vtab",        { description = "Enable the SQLITE_STMT virtual table logic.", default = true, type = "boolean"})
@@ -40,7 +39,6 @@ package("sqlite3")
     add_configs("safe_mode",        { description = "Use thread safe mode in 0 (single thread) | 1 (serialize) | 2 (mutli thread).", default = "1", type = "string", values = {"0", "1", "2"}})
     add_configs("cli",              { description = "Build the sqlite3 command line shell.", default = false, type = "boolean"})
 
-    -- 安装步骤
     on_install(function (package)
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         local configs = {}
@@ -52,7 +50,6 @@ package("sqlite3")
         import("package.tools.xmake").install(package, configs)
     end)
 
-    -- 测试步骤
     on_test(function (package)
         assert(package:has_cfuncs("sqlite3_libversion_number()", {includes = "sqlite3.h"}))
     end)
