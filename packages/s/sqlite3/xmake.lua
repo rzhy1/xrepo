@@ -1,11 +1,12 @@
-import("net.http")
-
 package("sqlite3")
     set_homepage("https://sqlite.org/index.html")
     set_description("SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.")
     set_license("MIT")
 
+    -- 动态设置 URL 和版本
     on_load(function (package)
+        import("net.http")  -- 确保在需要的地方加载模块
+
         -- Step 1: 获取 SQLite 最新版本号
         local index_html = http.get("https://www.sqlite.org/index.html")
         assert(index_html, "Failed to fetch SQLite index page!")
