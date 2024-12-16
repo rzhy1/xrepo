@@ -1,11 +1,3 @@
-local function getVersion(version)
-    local versions ={
-        ["2024.06.30-alpha"] = "archive/b519ce04e3f3a0651fcec43550bc71f09771b069.tar.gz",
-        --insert getVersion
-    }
-    return versions[tostring(version)] or format('releases/download/release-%s/aria2-%s.tar.xz', version, version)
-end
-
 local common_patches = {
     {"patches/socketcore-logger-fix.patch", "6fdfde0c07bd096168167690d0d8405b5937f23dfbb641c5ace73fe51f5ecfe1"},
     {"patches/android-lock-fix.patch", "97dd927493d53f36554f8dcca5c4fc03d51838e5ff87406e76f6ea8f8e29dcdb"},
@@ -23,18 +15,18 @@ package("aria2")
     set_homepage("https://aria2.github.io")
     set_description("aria2 is a lightweight multi-protocol & multi-source, cross platform download utility operated in command-line. It supports HTTP/HTTPS, FTP, SFTP, BitTorrent and Metalink.")
     set_license("GPL-2.0")
-    set_urls("https://github.com/aria2/aria2/$(version)", {version = getVersion})
+    set_urls("https://github.com/aria2/aria2/releases/download/release-$(version)/aria2-$(version).tar.xz")
 
-    --insert version
-    add_versions("2024.06.30-alpha", "4776effe32746a0c930d8b68bac1d8872dae514fe5372e1949eafb4fef29851d")
+    -- 只保留最新版本
     add_versions("1.37.0", "60a420ad7085eb616cb6e2bdf0a7206d68ff3d37fb5a956dc44242eb2f79b66b")
 
-    
     add_configs("uv", {description = "build use libuv", default = false, type = "boolean"})
+    
+    -- 添加补丁
     for _, v in ipairs(common_patches) do
         add_patches("1.37.0", path.join(os.scriptdir(), v[1]), v[2])
-        add_patches("2024.06.30-alpha", path.join(os.scriptdir(), v[1]), v[2])
     end
+
     on_install(function (package)
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         os.cp(path.join(os.scriptdir(), "port", "config.h.in"), "config.h.in")
