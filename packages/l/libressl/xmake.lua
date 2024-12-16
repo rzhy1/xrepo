@@ -7,8 +7,6 @@ package("libressl")
 
     --insert version
     add_versions("4.0.0", "4d841955f0acc3dfc71d0e3dd35f283af461222350e26843fea9731c0246a1e4")
-    add_versions("3.9.2", "7b031dac64a59eb6ee3304f7ffb75dad33ab8c9d279c847f92c89fb846068f97")
-
 
     add_patches("4.0.0", path.join(os.scriptdir(), "patches/001-ios-add-byte-order-macros.patch"), "4682df68e68be07ca3b1e362ac2035cf293ac786df9f99fc866522564d7b957f")
     add_configs("asm", {description = "use asm", default = true, type = "boolean"})
