@@ -2,10 +2,25 @@ package("c-ares")
     set_homepage("https://c-ares.org")
     set_description("A C library for asynchronous DNS requests")
     set_license("MIT")
-    set_urls("https://github.com/c-ares/c-ares/releases/download/v$(version)/c-ares-$(version).tar.gz")
 
-    -- 添加最新版本
-    add_versions("1.34.4", "6e54c022376317bc592f54bde13b776d03ad1f5d81a45ad5222f1cddbbd8d1e1")
+    -- 定义一个函数来获取最新的版本号
+    local function get_latest_version()
+        local json = import("package.json")
+        local res = json.load(os.popen('curl -s "https://api.github.com/repos/c-ares/c-ares/releases/latest"'))
+        if res and res.tag_name then
+          return res.tag_name:gsub("v", "")
+        end
+        return nil
+    end
+
+    -- 动态获取版本号
+    local version = get_latest_version()
+    if not version then
+       print("Failed to get the latest version of c-ares, using default version 1.20.1")
+       version = "1.20.1"
+    end
+    set_version(version)
+    set_urls("https://github.com/c-ares/c-ares/releases/download/v$(version)/c-ares-$(version).tar.gz")
 
     on_load(function (package) 
         if package:is_plat("windows", "mingw") and package:config("shared") ~= true then
