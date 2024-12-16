@@ -6,6 +6,9 @@ package("sqlite3")
     -- 固定下载地址，禁用校验
     set_urls("https://sqlite.org/2024/sqlite-autoconf-3470200.tar.gz", {verify = false})
 
+    -- 添加版本（版本号不会校验哈希值）
+    add_versions("3.47.0+200", "any")  -- 使用 "any" 表示不关心哈希值
+
     add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
     add_configs("dbpage_vtab",      { description = "Enable the SQLITE_DBPAGE virtual table.", default = true, type = "boolean"})
     add_configs("stmt_vtab",        { description = "Enable the SQLITE_STMT virtual table logic.", default = true, type = "boolean"})
