@@ -5,20 +5,14 @@ package("sqlite3")
 
     -- 动态设置 URL 和版本
     on_load(function (package)
-        -- Step 1: 调用外部工具获取 HTML 页面
-        local index_html_file = os.tmpfile()
-        os.execute("curl -s https://www.sqlite.org/index.html -o " .. index_html_file)
-        local index_html = io.readfile(index_html_file)
+        -- Step 1: 获取最新版本号
+        local index_html = os.iorun("curl -s https://www.sqlite.org/index.html")
         assert(index_html, "Failed to fetch SQLite index page!")
-
-        -- 提取最新版本号
         local latest_version = index_html:match(">Version ([%d%.]+)<")
         assert(latest_version, "Failed to extract latest SQLite version!")
 
-        -- Step 2: 调用外部工具获取下载页面
-        local download_page_file = os.tmpfile()
-        os.execute("curl -s https://www.sqlite.org/download.html -o " .. download_page_file)
-        local download_page = io.readfile(download_page_file)
+        -- Step 2: 获取下载页面
+        local download_page = os.iorun("curl -s https://www.sqlite.org/download.html")
         assert(download_page, "Failed to fetch SQLite download page!")
 
         -- 提取 CSV 数据和 tarball URL
