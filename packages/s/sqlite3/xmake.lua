@@ -2,56 +2,34 @@ package("sqlite3")
     set_homepage("https://sqlite.org/index.html")
     set_description("SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.")
     set_license("MIT")
-    
-    local function get_sqlite_info()
-      local retry = function(cmd)
-        local output, code = os.runv(cmd)
-        if code == 0 then
-          return output
-        end
-        return nil
-      end
-      local index_page = retry{"curl", "-s", "https://www.sqlite.org/index.html"}
-      if not index_page then
-        return nil, nil
-      end
-      
-      local version = index_page:match(">Version ([0-9.]+)<")
-      
-      local download_page = retry{"curl", "-s", "https://www.sqlite.org/download.html"}
-      if not download_page then
-        return nil, nil
-      end
-      
-      local csv_data = download_page:match("Download product data for scripts to read(.*)-->")
-      if not csv_data then
-         return nil,nil
-      end
-      local tarball_url = csv_data:match("autoconf.*%.tar%.gz")
-      if not tarball_url then
-         return nil, nil
-      end
-      local download_url = "https://www.sqlite.org/" .. tarball_url
-      
-      return version, download_url
-    end
 
-    local version, download_url = get_sqlite_info()
-    if not version then
-        print("Failed to get the latest version of sqlite3, using default version 3.47.0")
-       version = "3.47.0"
-       download_url = "https://www.sqlite.org/2024/sqlite-autoconf-3470000.tar.gz"
-    end
-    set_version(version)
-    set_urls(download_url, {version = function (version)
-      local version_str = version:gsub("[.+]", "")
-      if #version_str < 7 then
-          version_str = version_str .. "00"
-      end
-      return version_str
-  end})
+    -- 动态设置 URL 和版本
+    on_source(function (package)
+        -- Step 1: 获取最新版本号
+        local index_html = os.iorun("curl -s https://www.sqlite.org/index.html")
+        assert(index_html, "Failed to fetch SQLite index page!")
+        local latest_version = index_html:match(">Version ([%d%.]+)<")
+        assert(latest_version, "Failed to extract latest SQLite version!")
 
+        -- Step 2: 获取下载页面
+        local download_page = os.iorun("curl -s https://www.sqlite.org/download.html")
+        assert(download_page, "Failed to fetch SQLite download page!")
 
+        -- 提取 CSV 数据和 tarball URL
+        local csv_data = download_page:match("Download product data for scripts to read.-autoconf.*%.tar%.gz")
+        assert(csv_data, "Failed to extract download URL data!")
+        local tarball_url = csv_data:match("autoconf.*%.tar%.gz")
+        assert(tarball_url, "Failed to extract tarball URL!")
+
+        -- 构造最新的 tarball 下载地址
+        local latest_url = "https://www.sqlite.org/" .. tarball_url
+
+        -- 设置 URL 和版本
+        package:set("urls", latest_url)
+        package:add("versions", latest_version, "SKIP_CHECKSUM")
+    end)
+
+    -- 配置选项
     add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
     add_configs("dbpage_vtab",      { description = "Enable the SQLITE_DBPAGE virtual table.", default = true, type = "boolean"})
     add_configs("stmt_vtab",        { description = "Enable the SQLITE_STMT virtual table logic.", default = true, type = "boolean"})
@@ -61,6 +39,7 @@ package("sqlite3")
     add_configs("safe_mode",        { description = "Use thread safe mode in 0 (single thread) | 1 (serialize) | 2 (mutli thread).", default = "1", type = "string", values = {"0", "1", "2"}})
     add_configs("cli",              { description = "Build the sqlite3 command line shell.", default = false, type = "boolean"})
 
+    -- 安装逻辑
     on_install(function (package)
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         local configs = {}
@@ -72,6 +51,7 @@ package("sqlite3")
         import("package.tools.xmake").install(package, configs)
     end)
 
+    -- 测试逻辑
     on_test(function (package)
         assert(package:has_cfuncs("sqlite3_libversion_number()", {includes = "sqlite3.h"}))
     end)
