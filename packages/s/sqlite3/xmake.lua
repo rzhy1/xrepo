@@ -3,8 +3,9 @@ package("sqlite3")
     set_description("SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.")
     set_license("MIT")
 
-    -- 固定下载地址，不需要指定版本
     set_urls("https://sqlite.org/2024/sqlite-autoconf-3470200.tar.gz")
+
+    add_versions("3.47.0+200")
 
     add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
     add_configs("dbpage_vtab",      { description = "Enable the SQLITE_DBPAGE virtual table.", default = true, type = "boolean"})
