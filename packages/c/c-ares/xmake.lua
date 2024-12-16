@@ -1,72 +1,50 @@
-package("c-ares")
-    set_homepage("https://c-ares.org")
-    set_description("A C library for asynchronous DNS requests")
+package("sqlite3")
+    set_homepage("https://sqlite.org/index.html")
+    set_description("SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.")
     set_license("MIT")
 
-    -- 定义一个函数来获取最新的版本号
-    local function get_latest_version()
-        local cmd = {"curl", "-s", "https://api.github.com/repos/c-ares/c-ares/releases/latest"}
-        local output, code = os.runv(cmd)
-        if code ~= 0 then
-            return nil
+    set_urls("https://sqlite.org/$(version)", {version = function (version)
+        local year = "2024"
+        if version:le("3.24") then
+            year = "2018"
+        elseif version:le("3.36") then
+            year = "2021"
+        elseif version:le("3.42") then
+            year = "2022"
+        elseif version:le("3.44") then
+            year = "2023"
         end
-        local json_str = output
-        -- 这里简单处理一下json
-        local tag_name = json_str:match('"tag_name":"([^"]*)"')
-        if tag_name then
-          return tag_name:gsub("v", "")
+        local version_str = version:gsub("[.+]", "")
+        if #version_str < 7 then
+            version_str = version_str .. "00"
         end
-        return nil
-    end
+        return year .. "/sqlite-autoconf-" .. version_str .. ".tar.gz"
+    end})
 
-   -- 获取配置的版本号或者最新的版本号
-    local version = config("version")
-    if not version then
-      version = get_latest_version()
-        if not version then
-            print("Failed to get the latest version of c-ares, using default version 1.20.1")
-            version = "1.34.4"
-        end
-     end
-    set_version(version)
-    set_urls("https://github.com/c-ares/c-ares/releases/download/v$(version)/c-ares-$(version).tar.gz")
-    
+    --insert version
+    add_versions("3.46.0+100", "67d3fe6d268e6eaddcae3727fce58fcc8e9c53869bdd07a0c61e38ddf2965071")
+    add_versions("3.40.0+0", "0333552076d2700c75352256e91c78bf5cd62491589ba0c69aed0a81868980e7")
 
-    on_load(function (package) 
-        if package:is_plat("windows", "mingw") and package:config("shared") ~= true then
-            package:add("defines", "CARES_STATICLIB")
-        end
-    end)
+    add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
+    add_configs("dbpage_vtab",      { description = "Enable the SQLITE_DBPAGE virtual table.", default = true, type = "boolean"})
+    add_configs("stmt_vtab",        { description = "Enable the SQLITE_STMT virtual table logic.", default = true, type = "boolean"})
+    add_configs("dbstat_vtab",      { description = "Enable the dbstat virtual table.", default = true, type = "boolean"})
+    add_configs("math_functions",   { description = "Enable the built-in SQL math functions.", default = true, type = "boolean"})
+    add_configs("rtree",            { description = "Enable R-Tree.", default = false, type = "boolean"})
+    add_configs("safe_mode",        { description = "Use thread safe mode in 0 (single thread) | 1 (serialize) | 2 (mutli thread).", default = "1", type = "string", values = {"0", "1", "2"}})
+    add_configs("cli",              { description = "Build the sqlite3 command line shell.", default = false, type = "boolean"})
 
     on_install(function (package)
-        -- 函数用于转换配置文件格式
-        local transforme_configfile = function (input, output) 
-            output = output or input
-            local lines = io.readfile(input):gsub("@([%w_]+)@", "${%1}"):split("\n")
-            local out = io.open(output, 'wb')
-            for _, line in ipairs(lines) do
-                if line:startswith("#cmakedefine") then
-                    local name = line:split("%s+")[2]
-                    line = "${define "..name.."}"
-                end
-                out:write(line)
-                out:write("\n")
-            end
-            out:close()
-        end
-
-        -- 更新配置文件路径
-        transforme_configfile("include/ares_build.h.cmake", "cmake/ares_build.h.in")
-        transforme_configfile("src/lib/ares_config.h.cmake", "cmake/ares_config.h.in")
-        
-        -- 拷贝相关脚本
-        os.cp(path.join(os.scriptdir(), "port/*.lua"), "./")
-        
-        -- 配置并安装
+        os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         local configs = {}
+        for opt, value in pairs(package:configs()) do
+            if not package:extraconf("configs", opt, "builtin") then
+                configs[opt] = value
+            end
+        end
         import("package.tools.xmake").install(package, configs)
     end)
 
     on_test(function (package)
-        assert(package:has_cfuncs("ares_library_initialized", {includes = {"ares.h"}}))
+        assert(package:has_cfuncs("sqlite3_libversion_number()", {includes = "sqlite3.h"}))
     end)
