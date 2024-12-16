@@ -4,7 +4,7 @@ package("sqlite3")
     set_license("MIT")
 
     -- 动态设置 URL 和版本
-    on_load(function (package)
+    on_source(function (package)
         -- Step 1: 获取最新版本号
         local index_html = os.iorun("curl -s https://www.sqlite.org/index.html")
         assert(index_html, "Failed to fetch SQLite index page!")
