@@ -2,13 +2,30 @@ package("c-ares")
     set_homepage("https://c-ares.org")
     set_description("A C library for asynchronous DNS requests")
     set_license("MIT")
-    
-    -- 版本号先设置为nil
-    local version = nil
-    
-    local function get_download_url(version)
-       return "https://github.com/c-ares/c-ares/releases/download/v"..version.."/c-ares-"..version..".tar.gz"
+
+    -- 定义一个函数来获取最新的版本号
+    local function get_latest_version()
+        local cmd = {"curl", "-s", "https://api.github.com/repos/c-ares/c-ares/releases/latest"}
+        local output, code = os.runv(cmd)
+        if code ~= 0 then
+            return nil
+        end
+        local json_str = output
+        -- 这里简单处理一下json
+        local tag_name = json_str:match('"tag_name":"([^"]*)"')
+        if tag_name then
+          return tag_name:gsub("v", "")
+        end
+        return nil
     end
+    
+    local version = get_latest_version()
+    if not version then
+       print("Failed to get the latest version of c-ares, using default version 1.20.1")
+       version = "1.20.1"
+    end
+    set_version(version)
+    set_urls("https://github.com/c-ares/c-ares/releases/download/v$(version)/c-ares-$(version).tar.gz")
 
     on_load(function (package) 
         if package:is_plat("windows", "mingw") and package:config("shared") ~= true then
@@ -17,24 +34,6 @@ package("c-ares")
     end)
 
     on_install(function (package)
-        local json = import("package.json")
-        local function get_latest_version()
-            local res = json.load(os.popen('curl -s "https://api.github.com/repos/c-ares/c-ares/releases/latest"'))
-            if res and res.tag_name then
-              return res.tag_name:gsub("v", "")
-            end
-            return nil
-        end
-    
-        -- 动态获取版本号
-        version = get_latest_version()
-        if not version then
-           print("Failed to get the latest version of c-ares, using default version 1.20.1")
-           version = "1.20.1"
-        end
-        set_version(version)
-        set_urls(get_download_url(version))
-       
         -- 函数用于转换配置文件格式
         local transforme_configfile = function (input, output) 
             output = output or input
