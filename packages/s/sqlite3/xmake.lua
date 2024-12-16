@@ -3,27 +3,7 @@ package("sqlite3")
     set_description("SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.")
     set_license("MIT")
 
-    set_urls("https://sqlite.org/$(version)", {version = function (version)
-        local year = "2024"
-        if version:le("3.24") then
-            year = "2018"
-        elseif version:le("3.36") then
-            year = "2021"
-        elseif version:le("3.42") then
-            year = "2022"
-        elseif version:le("3.44") then
-            year = "2023"
-        end
-        local version_str = version:gsub("[.+]", "")
-        if #version_str < 7 then
-            version_str = version_str .. "00"
-        end
-        return year .. "/sqlite-autoconf-" .. version_str .. ".tar.gz"
-    end})
-
-    --insert version
-    add_versions("3.46.0+100", "67d3fe6d268e6eaddcae3727fce58fcc8e9c53869bdd07a0c61e38ddf2965071")
-    add_versions("3.40.0+0", "0333552076d2700c75352256e91c78bf5cd62491589ba0c69aed0a81868980e7")
+    set_urls("https://sqlite.org/2024/sqlite-autoconf-3470200.tar.gz"
 
     add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
     add_configs("dbpage_vtab",      { description = "Enable the SQLITE_DBPAGE virtual table.", default = true, type = "boolean"})
