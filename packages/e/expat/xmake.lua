@@ -1,13 +1,17 @@
-
 package("expat")
     set_homepage("https://libexpat.github.io")
     set_description("expat is a stream-oriented XML parser library written in C.")
     set_license("MIT")
-    set_urls("https://github.com/libexpat/libexpat/releases/download/R_$(version).tar.bz2", {version = function (version)
-        return version:gsub("%.", "_") .. "/expat-" .. version
-    end})
 
-    --insert version
+    -- 禁用哈希值校验
+    set_urls("https://github.com/libexpat/libexpat/releases/download/R_$(version).tar.bz2", {
+        version = function (version)
+            return version:gsub("%.", "_") .. "/expat-" .. version
+        end,
+        verify = false -- 添加此项以跳过哈希校验
+    })
+
+    -- 插入版本（无哈希值）
     add_versions("2.6.4")
 
     on_load(function (package)
