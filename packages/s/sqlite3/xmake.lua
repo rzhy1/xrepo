@@ -6,7 +6,7 @@ package("sqlite3")
     set_urls("https://sqlite.org/2024/sqlite-autoconf-3470200.tar.gz")
 
     -- 添加最新版本
-    add_versions("3.47.2+0", "b139c61f25207cb43cc572ee55c99f843cc659e9b3f3e9c2fbc0d73772dbbfdd")
+    add_versions("3.47.2+0")
 
     -- 添加配置项
     add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
