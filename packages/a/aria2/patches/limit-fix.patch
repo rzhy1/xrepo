@@ -3,8 +3,8 @@ index e69b2f7..a34b8c3 100644
 --- a/src/OptionHandlerFactory.cc
 +++ b/src/OptionHandlerFactory.cc
 @@ -906,1 +906,1 @@
--  PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1M", 1_m, 1_g)),
-+  PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1K", 1_k, 1_g)), 
+-        PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1M", 1_m, 1_g));
++        PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1K", 1_k, 1_g));
 @@ -441,1 +441,1 @@
--                                                "1", 1, 16, 'x'));
-+                                                "1", 1, 1024, 'x'));
+-                                              "1", 1, 16, 'x'));
++                                              "1", 1, 1024, 'x'));
