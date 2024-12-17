@@ -1,10 +1,22 @@
 diff --git a/src/OptionHandlerFactory.cc b/src/OptionHandlerFactory.cc
-index e69b2f7..a34b8c3 100644
 --- a/src/OptionHandlerFactory.cc
 +++ b/src/OptionHandlerFactory.cc
-@@ -906,1 +906,1 @@
+@@ -904,10 +904,10 @@
+ {
+     OptionHandler* op(new UnitNumberOptionHandler(
 -        PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1M", 1_m, 1_g));
-+        PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1K", 1_k, 1_g));
-@@ -441,1 +441,1 @@
+-        PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1K", 1_k, 1_g));
+     op->addTag(TAG_ADVANCED);
+     op->addTag(TAG_FTP);
+     op->addTag(TAG_HTTP);
+     op->setInitialOption(true);
+     op->setChangeGlobalOption(true);
+     handlers.push_back(op);
+   }
+@@ -439,5 +439,5 @@
+ OptionHandler* op(new NumberOptionHandler(PREF_MAX_CONNECTION_PER_SERVER,
+                                               TEXT_MAX_CONNECTION_PER_SERVER,
 -                                              "1", 1, 16, 'x'));
 +                                              "1", 1, 1024, 'x'));
+     op->addTag(TAG_BASIC);
+     op->addTag(TAG_FTP);
