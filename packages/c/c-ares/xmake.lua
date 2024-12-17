@@ -4,39 +4,42 @@ package("c-ares")
     set_license("MIT")
 
     local version = nil
-    
+   
     on_load(function (package) 
         if package:is_plat("windows", "mingw") and package:config("shared") ~= true then
             package:add("defines", "CARES_STATICLIB")
         end
     end)
-    
+
      on_install(function (package)
-          local function get_latest_version()
-            local retry = function(cmd)
-               local output, code = os.runv(cmd)
-               if code == 0 then
-                 return output
-               end
-               return nil
-             end
-             local json = import("package.json")
-             local res = json.load(retry{'curl', '-s', "https://api.github.com/repos/c-ares/c-ares/releases/latest"})
-             if res and res.tag_name then
-               return res.tag_name:gsub("v", "")
-             end
-             return nil
-          end
+           local function get_latest_version()
+               local retry = function(cmd)
+                   local output, code = os.runv(cmd)
+                   if code == 0 then
+                     return output
+                   end
+                   return nil
+                 end
+                local output = retry{'curl', '-s', "https://api.github.com/repos/c-ares/c-ares/releases/latest"}
+                 if not output then
+                    return nil
+                end
+                 local tag_name = output:match('"tag_name":"([^"]*)"')
+                 if tag_name then
+                     return tag_name:gsub("v", "")
+                 end
+                 return nil
+              end
     
         -- 动态获取版本号
-         version = get_latest_version()
-         if not version then
-           print("Failed to get the latest version of c-ares, using default version 1.20.1")
-           version = "1.20.1"
-         end
+        version = get_latest_version()
+        if not version then
+          print("Failed to get the latest version of c-ares, using default version 1.20.1")
+          version = "1.20.1"
+        end
          set_version(version)
          set_urls("https://github.com/c-ares/c-ares/releases/download/v$(version)/c-ares-$(version).tar.gz")
-    
+       
          local transforme_configfile = function (input, output) 
             output = output or input
             local lines = io.readfile(input):gsub("@([%w_]+)@", "${%1}"):split("\n")
