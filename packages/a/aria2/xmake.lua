@@ -9,7 +9,7 @@ local common_patches = {
     {"patches/pr-2209.patch", "89e78c6b3b9e8e04fd3b5e084cb0381de2561af899d2301cfe41ff7cec5f9e0b"},
     -- https://github.com/myfreeer/aria2-build-msys2/blob/master/aria2-0001-options-change-default-path-to-current-dir.patch
     {"patches/aria2-0001-options-change-default-path-to-current-dir.patch", "4f8a7cc119a2ae226d3ac78fc801a3004d237f5450f90476131276408bcb3528"},
-    {"patches/limit-fix.patch", "f843d6348c689645eee7186b7e6b5f38bfba0e673683e4a003819711e5f2e482"},
+    {"patches/limit-fix.patch", "31f0ed59f3569841407f4372e1b6397f09c5d6777cee76185339ec590d960a3b"},
 }
 
 package("aria2")
