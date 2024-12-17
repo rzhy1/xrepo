@@ -2,21 +2,11 @@ diff --git a/src/OptionHandlerFactory.cc b/src/OptionHandlerFactory.cc
 index e69b2f7..a34b8c3 100644
 --- a/src/OptionHandlerFactory.cc
 +++ b/src/OptionHandlerFactory.cc
-@@ -123,7 +123,7 @@
-   PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1M", 1_m, 1_g)),
-   PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "2M", 2_m, 2_g)),
-   PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "4M", 4_m, 4_g)),
+@@ -906,1 +906,1 @@
 -  PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1M", 1_m, 1_g)),
 +  PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "1K", 1_k, 1_g)),
-   PREF_PIECE_LENGTH, TEXT_PIECE_LENGTH, "8M", 8_m, 8_g)),
  };
  
-@@ -145,7 +145,7 @@
-       N_("Minimum value of this option is 1.")),
-       TEXT_VALUE_MIN, PREF_VALUE_MIN),
-   PREF_VALUE_MAX, TEXT_VALUE_MAX, 1_g)),
--  {"1", 1, 16},
-+  {"1", 1, 1024},
-   {"1.1", 1, 16},
-   {"1.2", 1, 16},
-   {"1.3", 1, 16},
+@@ -441,1 +441,1 @@
+-  "1", 1, 16, 'x',
++  "1", 1, 1024, 'x',
