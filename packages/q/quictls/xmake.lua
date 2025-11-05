@@ -1,4 +1,4 @@
-package("openssl")
+package("quictls")
     set_homepage("https://www.openssl.org/")
     set_description("TLS/SSL and crypto library")
     set_license("Apache-2.0")
