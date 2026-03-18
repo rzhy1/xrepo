@@ -8,7 +8,7 @@ package("expat")
     end})
 
     --insert version
-    add_versions("2.7.4", "e6af11b01e32e5ef64906a5cca8809eabc4beb7ff2f9a0e6aabbd42e825135d0")
+    add_versions("2.7.5", "386a423d40580f1e392e8b512b7635cac5083fe0631961e74e036b0a7a830d77")
 
     on_load(function (package)
         if package:config("shared") ~= true then
