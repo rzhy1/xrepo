@@ -12,6 +12,7 @@ package("expat")
         if package:config("shared") ~= true then
             package:add("defines", "XML_STATIC")
         end
+        -- Windows下随机数API底层会依赖系统库
         if package:is_plat("windows", "mingw") then
             package:add("syslinks", "advapi32", "bcrypt")
         end
@@ -20,23 +21,17 @@ package("expat")
     on_install(function (package)
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         
-        -- 修改打包脚本，确保链接库生效
-        local xmake_lua_content = io.readfile("xmake.lua")
-        xmake_lua_content = xmake_lua_content .. '\n\ntarget("expat")\nadd_syslinks("advapi32", "bcrypt")\n'
-        io.writefile("xmake.lua", xmake_lua_content)
-
         local version = package:version_str()
         
-        -- 【关键修复】不要用 xmake 的 ${define} 语法，直接原生 C 宏写死在最顶部！
+        -- 在最顶部焊死宏，确保先于 stdlib.h 生效
         local config_h_in = [[
-/* 强制开启 MSVC rand_s 函数的声明与实现 */
-#ifndef _CRT_RAND_S
-#define _CRT_RAND_S 1
+/* ========== 终极修复：强制启用 rand_s 的实现 ========== */
+#ifdef _WIN32
+# ifndef _CRT_RAND_S
+#  define _CRT_RAND_S 1
+# endif
 #endif
-
-#ifndef HAVE_RAND_S
-#define HAVE_RAND_S 1
-#endif
+/* ====================================================== */
 
 ${define _HOST_BIGENDIAN}
 
@@ -92,9 +87,11 @@ ${define HAVE_SYS_STAT_H}
 ${define HAVE_SYS_TYPES_H}
 ${define HAVE_UNISTD_H}
 ]]
+        
         config_h_in = config_h_in:gsub("@VERSION@", version)
         io.writefile("expat_config.h.in", config_h_in, {encoding = "binary"})
 
+        -- 执行安装
         import("package.tools.xmake").install(package)
     end)
 
