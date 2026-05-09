@@ -12,27 +12,27 @@ package("expat")
         if package:config("shared") ~= true then
             package:add("defines", "XML_STATIC")
         end
-        -- Windows下随机数API底层会依赖系统库
         if package:is_plat("windows", "mingw") then
             package:add("syslinks", "advapi32", "bcrypt")
         end
     end)
 
     on_install(function (package)
+        -- 1. 拷贝自带的构建脚本
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         
-        local version = package:version_str()
+        -- 2. 【真正的解药】拦截并修改构建脚本
+        -- 将官方遗留脚本中导致报错的 "HAVE_RAND_S" 强行替换为无害的 "HAVE_BCRYPT"
+        local xmake_lua_content = io.readfile("xmake.lua")
+        xmake_lua_content = xmake_lua_content:gsub('"HAVE_RAND_S"', '"HAVE_BCRYPT"')
         
-        -- 在最顶部焊死宏，确保先于 stdlib.h 生效
-        local config_h_in = [[
-/* ========== 终极修复：强制启用 rand_s 的实现 ========== */
-#ifdef _WIN32
-# ifndef _CRT_RAND_S
-#  define _CRT_RAND_S 1
-# endif
-#endif
-/* ====================================================== */
+        -- 确保链接上 Expat 2.8.0 所需的 bcrypt 库
+        xmake_lua_content = xmake_lua_content .. '\n\ntarget("expat")\nadd_syslinks("advapi32", "bcrypt")\n'
+        io.writefile("xmake.lua", xmake_lua_content)
 
+        -- 3. 生成最纯净的头文件（删除了之前加的那些补丁）
+        local version = package:version_str()
+        local config_h_in = [[
 ${define _HOST_BIGENDIAN}
 
 #if _HOST_BIGENDIAN == 1
@@ -91,7 +91,6 @@ ${define HAVE_UNISTD_H}
         config_h_in = config_h_in:gsub("@VERSION@", version)
         io.writefile("expat_config.h.in", config_h_in, {encoding = "binary"})
 
-        -- 执行安装
         import("package.tools.xmake").install(package)
     end)
 
