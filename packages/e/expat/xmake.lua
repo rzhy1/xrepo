@@ -1,71 +1,66 @@
 package("expat")
     set_homepage("https://libexpat.github.io")
-    set_description("Expat is a stream-oriented XML parser library written in C.")
+    set_description("expat is a stream-oriented XML parser library written in C.")
     set_license("MIT")
+    set_urls("https://github.com/libexpat/libexpat/releases/download/R_$(version).tar.bz2", {version = function (version)
+        return version:gsub("%.", "_") .. "/expat-" .. version
+    end})
 
-    set_urls("https://github.com/libexpat/libexpat/releases/download/R_$(version).tar.bz2", {
-        version = function (version)
-            return version:gsub("%.", "_") .. "/expat-" .. version
-        end
-    })
-
+    --insert version
     add_versions("2.8.0", "586494499ac3ad46d87f3beda7b1f770c1c8026a9b60e151593f8b29089a52ca")
 
     on_load(function (package)
-        if not package:config("shared") then
+        if package:config("shared") ~= true then
             package:add("defines", "XML_STATIC")
+        end
+        -- Windows下安全随机数生成有时会回退到 CryptGenRandom，需要此库
+        if package:is_plat("windows", "mingw") then
+            package:add("syslinks", "advapi32")
         end
     end)
 
     on_install(function (package)
-
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
+        
+        local version = package:version_str()
+        local config_h_in = [[
+/* 必须在引入 stdlib.h 之前定义，以启用 Windows 的 rand_s */
+#ifndef _CRT_RAND_S
+#define _CRT_RAND_S 1
+#endif
 
-        io.writefile("expat_config.h.in", [[
 ${define _HOST_BIGENDIAN}
 
 #if _HOST_BIGENDIAN == 1
-#   define BYTEORDER 4321
+#define BYTEORDER 4321
 #else
-#   define BYTEORDER 1234
+#define BYTEORDER 1234
 #endif
 
 #define XML_CONTEXT_BYTES 1024
-
 #define XML_DTD 1
 #define XML_NS 1
 #define XML_GE 1
-
 #define PACKAGE "expat"
 #define PACKAGE_BUGREPORT "expat-bugs@libexpat.org"
 #define PACKAGE_NAME "expat"
-#define PACKAGE_STRING "expat 2.8.0"
+#define PACKAGE_STRING "expat @VERSION@"
 #define PACKAGE_TARNAME "expat"
-#define PACKAGE_URL "https://libexpat.github.io/"
-#define PACKAGE_VERSION "2.8.0"
-
+#define PACKAGE_URL ""
+#define PACKAGE_VERSION "@VERSION@"
 #define STDC_HEADERS 1
-
-#define VERSION "2.8.0"
-
-#if defined(AC_APPLE_UNIVERSAL_BUILD)
-#   if defined(__BIG_ENDIAN__)
-#       define WORDS_BIGENDIAN 1
-#   endif
+#define VERSION "@VERSION@"
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
 #else
-#   ifndef WORDS_BIGENDIAN
-        /* #undef WORDS_BIGENDIAN */
-#   endif
+# ifndef WORDS_BIGENDIAN
+/* #  undef WORDS_BIGENDIAN */
+# endif
 #endif
-
-/*
- * Windows 下禁用 entropy 随机源，
- * 避免 writeRandomBytes_rand_s 链接问题
- */
-#define XML_POOR_ENTROPY 1
-
 #if !defined(_WIN32)
-#   define XML_DEV_URANDOM 1
+#define XML_DEV_URANDOM 1
 #endif
 
 ${define HAVE_ARC4RANDOM}
@@ -73,7 +68,6 @@ ${define HAVE_ARC4RANDOM_BUF}
 ${define HAVE_GETPAGESIZE}
 ${define HAVE_GETRANDOM}
 ${define HAVE_MMAP}
-
 ${define HAVE_DLFCN_H}
 ${define HAVE_FCNTL_H}
 ${define HAVE_INTTYPES_H}
@@ -86,19 +80,16 @@ ${define HAVE_SYS_PARAM_H}
 ${define HAVE_SYS_STAT_H}
 ${define HAVE_SYS_TYPES_H}
 ${define HAVE_UNISTD_H}
-
-]], {encoding = "binary"})
-
+]]
+        -- 动态替换版本号
+        config_h_in = config_h_in:gsub("@VERSION@", version)
+        
+        io.writefile("expat_config.h.in", config_h_in, {encoding = "binary"})
+        
         local configs = {}
-
         import("package.tools.xmake").install(package, configs)
     end)
 
     on_test(function (package)
-        assert(package:has_cfuncs("XML_ParserCreate(NULL)", {
-            includes = {
-                "expat_external.h",
-                "expat.h"
-            }
-        }))
+        assert(package:has_cfuncs("XML_ParserCreate(NULL)", {includes = {"expat_external.h", "expat.h"}}))
     end)
