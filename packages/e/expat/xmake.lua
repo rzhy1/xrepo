@@ -13,23 +13,31 @@ package("expat")
             package:add("defines", "XML_STATIC")
         end
         if package:is_plat("windows", "mingw") then
-            -- 补充依赖库
             package:add("syslinks", "advapi32", "bcrypt")
         end
     end)
 
     on_install(function (package)
-        -- 1. 拷贝自带的构建脚本
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         
-        -- 2. 【终极修复】暴力修改拷贝过来的 xmake.lua，强制为目标 target 注入宏和系统库
+        -- 修改打包脚本，确保链接库生效
         local xmake_lua_content = io.readfile("xmake.lua")
-        xmake_lua_content = xmake_lua_content .. '\n\ntarget("expat")\nadd_defines("_CRT_RAND_S")\nadd_syslinks("advapi32", "bcrypt")\n'
+        xmake_lua_content = xmake_lua_content .. '\n\ntarget("expat")\nadd_syslinks("advapi32", "bcrypt")\n'
         io.writefile("xmake.lua", xmake_lua_content)
 
-        -- 3. 处理头文件替换
         local version = package:version_str()
+        
+        -- 【关键修复】不要用 xmake 的 ${define} 语法，直接原生 C 宏写死在最顶部！
         local config_h_in = [[
+/* 强制开启 MSVC rand_s 函数的声明与实现 */
+#ifndef _CRT_RAND_S
+#define _CRT_RAND_S 1
+#endif
+
+#ifndef HAVE_RAND_S
+#define HAVE_RAND_S 1
+#endif
+
 ${define _HOST_BIGENDIAN}
 
 #if _HOST_BIGENDIAN == 1
@@ -51,6 +59,7 @@ ${define _HOST_BIGENDIAN}
 #define PACKAGE_VERSION "@VERSION@"
 #define STDC_HEADERS 1
 #define VERSION "@VERSION@"
+
 #if defined AC_APPLE_UNIVERSAL_BUILD
 # if defined __BIG_ENDIAN__
 #  define WORDS_BIGENDIAN 1
@@ -60,6 +69,7 @@ ${define _HOST_BIGENDIAN}
 /* #  undef WORDS_BIGENDIAN */
 # endif
 #endif
+
 #if !defined(_WIN32)
 #define XML_DEV_URANDOM 1
 #endif
@@ -85,7 +95,6 @@ ${define HAVE_UNISTD_H}
         config_h_in = config_h_in:gsub("@VERSION@", version)
         io.writefile("expat_config.h.in", config_h_in, {encoding = "binary"})
 
-        -- 4. 执行安装
         import("package.tools.xmake").install(package)
     end)
 
