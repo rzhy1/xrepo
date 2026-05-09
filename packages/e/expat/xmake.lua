@@ -22,7 +22,9 @@ package("expat")
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         
         local version = package:version_str()
-        io.writefile("expat_config.h.in", [[
+        
+        -- 分步操作：先定义字符串变量
+        local config_h_in = [[
 ${define _HOST_BIGENDIAN}
 
 #if _HOST_BIGENDIAN == 1
@@ -74,7 +76,13 @@ ${define HAVE_SYS_PARAM_H}
 ${define HAVE_SYS_STAT_H}
 ${define HAVE_SYS_TYPES_H}
 ${define HAVE_UNISTD_H}
-]]:gsub("@VERSION@", version), {encoding = "binary"})
+]]
+        
+        -- 再执行字符串替换
+        config_h_in = config_h_in:gsub("@VERSION@", version)
+        
+        -- 最后写文件
+        io.writefile("expat_config.h.in", config_h_in, {encoding = "binary"})
 
         local configs = {}
         if package:is_plat("windows") then
