@@ -12,18 +12,23 @@ package("expat")
         if package:config("shared") ~= true then
             package:add("defines", "XML_STATIC")
         end
-        -- Windows 下 Expat 2.8.0 需要安全随机数生成依赖库
         if package:is_plat("windows", "mingw") then
+            -- 补充依赖库
             package:add("syslinks", "advapi32", "bcrypt")
         end
     end)
 
     on_install(function (package)
+        -- 1. 拷贝自带的构建脚本
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         
+        -- 2. 【终极修复】暴力修改拷贝过来的 xmake.lua，强制为目标 target 注入宏和系统库
+        local xmake_lua_content = io.readfile("xmake.lua")
+        xmake_lua_content = xmake_lua_content .. '\n\ntarget("expat")\nadd_defines("_CRT_RAND_S")\nadd_syslinks("advapi32", "bcrypt")\n'
+        io.writefile("xmake.lua", xmake_lua_content)
+
+        -- 3. 处理头文件替换
         local version = package:version_str()
-        
-        -- 分步操作：先定义字符串变量
         local config_h_in = [[
 ${define _HOST_BIGENDIAN}
 
@@ -77,19 +82,11 @@ ${define HAVE_SYS_STAT_H}
 ${define HAVE_SYS_TYPES_H}
 ${define HAVE_UNISTD_H}
 ]]
-        
-        -- 再执行字符串替换
         config_h_in = config_h_in:gsub("@VERSION@", version)
-        
-        -- 最后写文件
         io.writefile("expat_config.h.in", config_h_in, {encoding = "binary"})
 
-        local configs = {}
-        if package:is_plat("windows") then
-            -- 【关键修复】通过全局编译参数强行注入，确保源文件与标准库同步
-            configs.cxflags = "-D_CRT_RAND_S"
-        end
-        import("package.tools.xmake").install(package, configs)
+        -- 4. 执行安装
+        import("package.tools.xmake").install(package)
     end)
 
     on_test(function (package)
