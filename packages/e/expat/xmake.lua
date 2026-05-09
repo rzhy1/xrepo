@@ -6,16 +6,15 @@ package("expat")
         return version:gsub("%.", "_") .. "/expat-" .. version
     end})
 
-    --insert version
     add_versions("2.8.0", "586494499ac3ad46d87f3beda7b1f770c1c8026a9b60e151593f8b29089a52ca")
 
     on_load(function (package)
         if package:config("shared") ~= true then
             package:add("defines", "XML_STATIC")
         end
-        -- Windows下安全随机数生成有时会回退到 CryptGenRandom，需要此库
+        -- Windows 下 Expat 2.8.0 需要安全随机数生成依赖库
         if package:is_plat("windows", "mingw") then
-            package:add("syslinks", "advapi32")
+            package:add("syslinks", "advapi32", "bcrypt")
         end
     end)
 
@@ -23,12 +22,7 @@ package("expat")
         os.cp(path.join(os.scriptdir(), "port", "xmake.lua"), "xmake.lua")
         
         local version = package:version_str()
-        local config_h_in = [[
-/* 必须在引入 stdlib.h 之前定义，以启用 Windows 的 rand_s */
-#ifndef _CRT_RAND_S
-#define _CRT_RAND_S 1
-#endif
-
+        io.writefile("expat_config.h.in", [[
 ${define _HOST_BIGENDIAN}
 
 #if _HOST_BIGENDIAN == 1
@@ -80,13 +74,13 @@ ${define HAVE_SYS_PARAM_H}
 ${define HAVE_SYS_STAT_H}
 ${define HAVE_SYS_TYPES_H}
 ${define HAVE_UNISTD_H}
-]]
-        -- 动态替换版本号
-        config_h_in = config_h_in:gsub("@VERSION@", version)
-        
-        io.writefile("expat_config.h.in", config_h_in, {encoding = "binary"})
-        
+]]:gsub("@VERSION@", version), {encoding = "binary"})
+
         local configs = {}
+        if package:is_plat("windows") then
+            -- 【关键修复】通过全局编译参数强行注入，确保源文件与标准库同步
+            configs.cxflags = "-D_CRT_RAND_S"
+        end
         import("package.tools.xmake").install(package, configs)
     end)
 
