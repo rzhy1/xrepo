@@ -13,8 +13,7 @@ package("libressl")
     add_versions("3.9.2", "7b031dac64a59eb6ee3304f7ffb75dad33ab8c9d279c847f92c89fb846068f97")
 
     add_patches("4.0.0", path.join(os.scriptdir(), "patches/001-ios-add-byte-order-macros.patch"), "4682df68e68be07ca3b1e362ac2035cf293ac786df9f99fc866522564d7b957f")
-
-    add_configs("asm", {description = "use asm", default = true, type = "boolean"})
+    add_configs("asm", {description = "use asm", default = false, type = "boolean"})
     add_configs("openssldir", {description = "openssldir set", default = nil, type = "string"})
     add_configs("ca", {description = "default ca file path", default = nil, type = "string"})
     if is_plat("windows", "mingw") then
