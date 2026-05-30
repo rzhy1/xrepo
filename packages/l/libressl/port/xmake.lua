@@ -442,7 +442,7 @@ target("tls")
         elseif is_arch("i[3456]86", "x86") then
             arch_dir = 'amd64'
         end
-        os.cp('include/arch/'..arch_dir..'/opensslconf.h', 'include/openssl/opensslconf.h')
+        io.writefile('include/openssl/opensslconf.h', '/* opensslconf.h */\n#include <openssl/opensslfeatures.h>\n')
     end)
     add_headerfiles("include/openssl/*.h", {prefixdir = "openssl"})
     add_headerfiles("include/tls.h")
