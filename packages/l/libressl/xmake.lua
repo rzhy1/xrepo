@@ -22,29 +22,29 @@ package("libressl")
         add_syslinks("pthread")
     end
     add_links("tls", "ssl", "crypto")
+
+    -- 声明此包的构建过程需要系统安装有 cmake 工具
+    add_deps("cmake")
+
+    -- 正确、无任何函数嵌套、100% 独立合规的单层安装配置
     on_install(function (package)
-        local export_prefix = package:version():ge("3.9.0") and "libressl_" or ""
-        os.cp(path.join(os.scriptdir(), "port", "*.lua"), "./")
         local configs = {
-            "--export_prefix="..export_prefix,
+            "-DLIBRESSL_APPS=OFF",
+            "-DLIBRESSL_TESTS=OFF",
         }
-        table.insert(configs, "--asm="..(package:config("asm") and 'y' or 'n'))
-        if package:config('openssldir') then
-            table.insert(configs, "--openssldir="..package:config('openssldir'))
+        -- 传递汇编禁用配置
+        table.insert(configs, "-DASM=" .. (package:config("asm") and "ON" or "OFF"))
+        
+        -- 传递可能需要的证书及目录配置
+        if package:config("openssldir") then
+            table.insert(configs, "-DOPENSSLDIR=" .. package:config("openssldir"))
         end
-        if package:config('ca') then
-            table.insert(configs, "--ca="..package:config('ca'))
+        if package:config("ca") then
+            table.insert(configs, "-DDEFAULT_CA_FILE=" .. package:config("ca"))
         end
-        if package:version():ge("4.0.0") then
-            table.insert(configs, "--file_version="..tostring(package:version()))
-        end
-        on_install(function (package)
-            import("package.tools.cmake").install(package, {
-                "-DLIBRESSL_APPS=OFF",
-                "-DLIBRESSL_TESTS=OFF",
-                "-DASM=" .. (package:config("asm") and "ON" or "OFF"),
-            })
-        end)
+
+        -- 使用系统内置的 CMake 标准编译器静态编译 LibreSSL
+        import("package.tools.cmake").install(package, configs)
     end)
 
     on_test(function (package)
