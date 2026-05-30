@@ -38,7 +38,9 @@ package("libressl")
         if package:version():ge("4.0.0") then
             table.insert(configs, "--file_version="..tostring(package:version()))
         end
-        import("package.tools.xmake").install(package, configs)
+        on_install(function (package)
+            import("package.tools.cmake").install(package, {"-DLIBRESSL_APPS=OFF", "-DLIBRESSL_TESTS=OFF"})
+        end)
     end)
 
     on_test(function (package)
