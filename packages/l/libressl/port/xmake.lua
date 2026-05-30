@@ -434,11 +434,11 @@ target("tls")
         local check = import("check")(target)
         local arch_dir = nil
         if is_arch('arm64.*') then
-            arch_dir = 'aarch64'
+            arch_dir = 'arm64'
         elseif is_arch('arm.*') then
             arch_dir = 'arm'
         elseif is_arch("x64", "x86_64") then
-            arch_dir = 'aarch64'
+            arch_dir = 'amd64'
         elseif is_arch("i[3456]86", "x86") then
             arch_dir = 'amd64'
         end
