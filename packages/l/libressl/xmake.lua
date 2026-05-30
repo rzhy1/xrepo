@@ -39,7 +39,11 @@ package("libressl")
             table.insert(configs, "--file_version="..tostring(package:version()))
         end
         on_install(function (package)
-            import("package.tools.cmake").install(package, {"-DLIBRESSL_APPS=OFF", "-DLIBRESSL_TESTS=OFF"})
+            import("package.tools.cmake").install(package, {
+                "-DLIBRESSL_APPS=OFF",
+                "-DLIBRESSL_TESTS=OFF",
+                "-DASM=" .. (package:config("asm") and "ON" or "OFF"),
+            })
         end)
     end)
 
