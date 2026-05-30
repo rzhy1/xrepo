@@ -5,17 +5,13 @@ package("libressl")
 
     add_urls("https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-$(version).tar.gz")
 
-    --insert version
     add_versions("4.3.2", "edf01aee24c65d69e6a9efcb9d44bcda682ff9d4f3bbbd95e794e1dfa90847b5")
     add_versions("4.2.0", "0f7dba44d7cb8df8d53f2cfbf1955254bc128e0089595f1aba2facfaee8408b2")
-    add_versions("4.1.0", "0f71c16bd34bdaaccdcb96a5d94a4921bfb612ec6e0eba7a80d8854eefd8bb61")
-    add_versions("4.0.0", "4d841955f0acc3dfc71d0e3dd35f283af461222350e26843fea9731c0246a1e4")
-    add_versions("3.9.2", "7b031dac64a59eb6ee3304f7ffb75dad33ab8c9d279c847f92c89fb846068f97")
 
-    add_patches("4.0.0", path.join(os.scriptdir(), "patches/001-ios-add-byte-order-macros.patch"), "4682df68e68be07ca3b1e362ac2035cf293ac786df9f99fc866522564d7b957f")
-    add_configs("asm", {description = "use asm", default = false, type = "boolean"})
-    add_configs("openssldir", {description = "openssldir set", default = nil, type = "string"})
-    add_configs("ca", {description = "default ca file path", default = nil, type = "string"})
+    add_configs("asm", {description = "Enable assembly optimizations", default = false, type = "boolean"})
+    add_configs("openssldir", {description = "OpenSSL configuration directory", default = nil, type = "string"})
+    add_configs("ca", {description = "Default CA file path", default = nil, type = "string"})
+
     if is_plat("windows", "mingw") then
         add_syslinks("ws2_32", "bcrypt")
     elseif is_plat("linux") then
@@ -23,27 +19,25 @@ package("libressl")
     end
     add_links("tls", "ssl", "crypto")
 
-    -- 声明此包的构建过程需要系统安装有 cmake 工具
-    add_deps("cmake")
-
-    -- 正确、无任何函数嵌套、100% 独立合规的单层安装配置
     on_install(function (package)
         local configs = {
             "-DLIBRESSL_APPS=OFF",
             "-DLIBRESSL_TESTS=OFF",
+            "-DASM=" .. (package:config("asm") and "ON" or "OFF"),
+            "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"),
         }
-        -- 传递汇编禁用配置
-        table.insert(configs, "-DASM=" .. (package:config("asm") and "ON" or "OFF"))
-        
-        -- 传递可能需要的证书及目录配置
+        if package:debug() then
+            table.insert(configs, "-DCMAKE_BUILD_TYPE=Debug")
+        else
+            table.insert(configs, "-DCMAKE_BUILD_TYPE=Release")
+        end
         if package:config("openssldir") then
             table.insert(configs, "-DOPENSSLDIR=" .. package:config("openssldir"))
         end
         if package:config("ca") then
             table.insert(configs, "-DDEFAULT_CA_FILE=" .. package:config("ca"))
         end
-
-        -- 使用系统内置的 CMake 标准编译器静态编译 LibreSSL
+        
         import("package.tools.cmake").install(package, configs)
     end)
 
