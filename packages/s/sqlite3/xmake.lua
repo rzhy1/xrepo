@@ -1,20 +1,19 @@
 package("sqlite3")
     set_homepage("https://sqlite.org/index.html")
     set_description("SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.")
-    set_license("MIT")
-
+    set_license("Public Domain")
     set_urls("https://sqlite.org/$(version)", {version = function (version)
-        local year = tostring(version):match("+(%d+)%.%d+$")
-        version_str = version:gsub(year, ""):gsub("[.+]", "")
-        if #version_str < 7 then
-            version_str = version_str .. "00"
+        local major, minor, patch, year = tostring(version):match("(%d+)%.(%d+)%.?(%d*)%+(%d+)")
+        if major and minor and year then
+            patch = (patch ~= "") and patch or "0"
+            local version_str = string.format("%s%02d%02d00", major, tonumber(minor), tonumber(patch))
+            return year .. "/sqlite-autoconf-" .. version_str .. ".tar.gz"
+        else
+            error("Unsupported version format: " .. tostring(version) .. ". Expected pattern: X.Y.Z+YYYY.REV")
         end
-        return year .. "/sqlite-autoconf-" .. version_str .. ".tar.gz"
     end})
 
-    --insert version
-
-    add_versions("3.53.0+2026.100", "83e6b2020a034e9a7ad4a72feea59e1ad52f162e09cbd26735a3ffb98359fc4f")
+    add_versions("3.53.0+2026.200", "588ad51949419a56ebe81fe56193d510c559eb94c9a57748387860b5d3069316")
 
     add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
     add_configs("dbpage_vtab",      { description = "Enable the SQLITE_DBPAGE virtual table.", default = true, type = "boolean"})
