@@ -3,10 +3,16 @@ package("sqlite3")
     set_description("SQLite is a C-language library that implements a small, fast, self-contained, high-reliability, full-featured, SQL database engine.")
     set_license("Public Domain")
     set_urls("https://sqlite.org/$(version)", {version = function (version)
-        local major, minor, patch, year = tostring(version):match("(%d+)%.(%d+)%.?(%d*)%+(%d+)")
+        local major, minor, patch, year, suffix = tostring(version):match("(%d+)%.(%d+)%.?(%d*)%+(%d+)%.?(%d*)") 
         if major and minor and year then
-            patch = (patch ~= "") and patch or "0"
-            local version_str = string.format("%s%02d%02d00", major, tonumber(minor), tonumber(patch))
+            local zz_uu
+            if suffix and suffix ~= "" then
+                zz_uu = string.format("%04d", tonumber(suffix))
+            else
+                local patch_num = (patch and patch ~= "") and tonumber(patch) or 0
+                zz_uu = string.format("%04d", patch_num * 100)
+            end
+            local version_str = string.format("%s%02d%s", major, tonumber(minor), zz_uu)
             return year .. "/sqlite-autoconf-" .. version_str .. ".tar.gz"
         else
             error("Unsupported version format: " .. tostring(version) .. ". Expected pattern: X.Y.Z+YYYY.REV")
