@@ -4,9 +4,8 @@ package("gettext-tools")
     set_description("GNU gettext tools compiled binaries for Windows")
     set_license("GPL-3.0")
     set_urls("https://github.com/vslavik/gettext-tools-windows/releases/download/v$(version)/gettext-tools-windows-$(version).zip")
-
     --insert version
-    add_versions("0.26", "31b0d12d16f4e6655bb4922332f931d69a2e105d17c5e2ebadc7a5b0735d37ff")
+    add_versions("1.0", "fe844fcbeb49d29daa79bedf1e559ba0b2a9606c19b3a3c968d1383a1f707b5a")
     on_install(function (package)
         os.cp("*", package:installdir())
     end)
