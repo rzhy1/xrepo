@@ -19,7 +19,7 @@ package("sqlite3")
         end
     end})
 
-    add_versions("3.54.0+2026.000", "134ec0802dda5795816e25d25872d20b312cb3973438c49b30bc40b7705ea9ed")
+    add_versions("3.54.0+2026.100", "926ef8d3eab93fbf6e06011901273eec076b25594a4e1cdadd50c987f4f6d64e")
 
     add_configs("explain_comments", { description = "Inserts comment text into the output of EXPLAIN.", default = true, type = "boolean"})
     add_configs("dbpage_vtab",      { description = "Enable the SQLITE_DBPAGE virtual table.", default = true, type = "boolean"})
