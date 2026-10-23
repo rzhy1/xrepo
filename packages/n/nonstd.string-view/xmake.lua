@@ -6,8 +6,7 @@ package("nonstd.string-view")
     set_urls("https://github.com/martinmoene/string-view-lite/archive/refs/tags/v$(version).tar.gz")
 
     --insert version
-    add_versions("1.8.0", "9b38c32621eb1a81a7fa59427144309225c414a7bae522ab3a2d9ae239dd35be")
-    add_versions("1.7.0", "265eaec08c4555259b46f5b03004dbc0f7206384edfac1cd5a837efaa642e01c")
+    add_versions("1.8.2", "62852addccb3b73b72030c6afd130e8b63f9b2a00b032b0af4048b0cc6b49f82")
     on_install(function (package)
         os.cp("include/nonstd", package:installdir("include").."/")
     end)
