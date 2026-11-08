@@ -5,7 +5,7 @@ package("zlib")
     set_urls("https://github.com/madler/zlib/releases/download/v$(version)/zlib-$(version).tar.gz")
 
     --insert version
-    add_versions("1.3.2", "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16")
+    add_versions("1.4", "02dd159783677a749c04adbdd02b55b8a2bcc7e054f51b76b549199a916ad584")
 
     add_includedirs("include")
     add_includedirs("include/zlib")
