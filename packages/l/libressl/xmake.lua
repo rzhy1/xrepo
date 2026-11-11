@@ -5,7 +5,7 @@ package("libressl")
 
     add_urls("https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-$(version).tar.gz")
 
-    add_versions("4.4.0", "7d02522ad5070b9adb32eb253ecabce181184a3750cf65abac0675ee908687c1")
+    add_versions("4.4.1", "290cdf1b53c086255dc302f118b98602a444e9ae6d11e9bfdd8c9b1b60aa3a22")
 
     add_configs("asm", {description = "Enable assembly optimizations", default = false, type = "boolean"})
     add_configs("openssldir", {description = "OpenSSL configuration directory", default = nil, type = "string"})
