@@ -9,7 +9,7 @@ package("expat")
         end
     })
 
-    add_versions("2.10.0", "44e0139015f1c9908d0876b5516235136f16b14932d8f6634a16737a12742f53")
+    add_versions("2.11.0", "e4fad0deffe151dbb4ba23226211a4c607765bebfbe02772db3644a928482777")
 
     -- 引入 cmake 作为底层构建工具依赖
     add_deps("cmake")
